@@ -1,0 +1,289 @@
+[
+    {   
+        "no": 1,
+        "question":"Total Ports",
+        "ground_truth_sql": "SELECT count(*) FROM ports",
+        "intent": ["ports"],
+        "ground_truth_result": [
+      {
+        "total_ports": 15
+      }
+    ]
+    },
+    {
+        "no": 2,
+        "question":"Total ships",
+        "ground_truth_sql": "SELECT count(*) FROM ships",
+        "intent": ["ships"],
+        "ground_truth_result": [
+      {
+        "total_ships": 1000
+      }
+    ]
+    },
+    {
+        "no": 3,
+        "question":"Total Shipment per cargo type",
+        "ground_truth_sql": "SELECT cargo_type, COUNT(*) AS total_shipments FROM shipments GROUP BY cargo_type",
+        "intent": ["shipments"],
+        "ground_truth_result": [
+            {
+                "cargo_type": "Electronics",
+                "total_shipments": 2571
+            },
+            {
+                "cargo_type": "Coal",
+                "total_shipments": 2446
+            },
+            {
+                "cargo_type": "Crude Oil",
+                "total_shipments": 2524
+            },
+            {
+                "cargo_type": "Steel",
+                "total_shipments": 2476
+            },
+            {
+                "cargo_type": "Textiles",
+                "total_shipments": 2507
+            },
+            {
+                "cargo_type": "Automobiles",
+                "total_shipments": 2383
+            },
+            {
+                "cargo_type": "Machinery",
+                "total_shipments": 2597
+            },
+            {
+                "cargo_type": "Food Products",
+                "total_shipments": 2473
+            },
+            {
+                "cargo_type": "Chemicals",
+                "total_shipments": 2449
+            },
+            {
+                "cargo_type": "Consumer Goods",
+                "total_shipments": 2574
+            }
+            ]
+    },
+    {
+        "no": 4,
+        "question":"Top 5 countries with most delayed ships and their number",
+        "ground_truth_sql": "SELECT s.origin_country, COUNT(*) AS total_delayed FROM shipments shi LEFT JOIN ships s ON s.ship_id = shi.ship_id WHERE shi.shipment_status = 'Delayed' GROUP BY s.origin_country ORDER BY total_delayed DESC LIMIT 5",
+        "intent":["shipments","ships"],
+        "ground_truth_result":[
+            {
+                "origin_country": "Bermuda",
+                "total_delayed": 155
+            },
+            {
+                "origin_country": "French Guiana",
+                "total_delayed": 147
+            },
+            {
+                "origin_country": "Sao Tome and Principe",
+                "total_delayed": 134
+            },
+            {
+                "origin_country": "American Samoa",
+                "total_delayed": 132
+            },
+            {
+                "origin_country": "Lesotho",
+                "total_delayed": 131
+            }
+            ]
+
+    },
+    {   
+        "no": 5,
+        "question":"Total 10 Routes on time",
+        "ground_truth_sql": "SELECT ps.port_name AS source_port, pd.port_name AS destination_port, COUNT(*) AS on_arrival_count FROM shipments shi LEFT JOIN ports ps ON shi.source_port_id = ps.port_id LEFT JOIN ports pd ON shi.destination_port_id = pd.port_id WHERE shi.shipment_status = 'On Time' GROUP BY ps.port_name, pd.port_name ORDER BY on_arrival_count DESC LIMIT 10",
+        "intent":["shipments","ships"],
+        "ground_truth_result": [
+            {
+                "source_port": "Singapore",
+                "destination_port": "Rotterdam",
+                "on_arrival_count": 585
+            },
+            {
+                "source_port": "Chennai",
+                "destination_port": "Dubai",
+                "on_arrival_count": 567
+            },
+            {
+                "source_port": "Busan",
+                "destination_port": "Singapore",
+                "on_arrival_count": 566
+            },
+            {
+                "source_port": "Shanghai",
+                "destination_port": "Los Angeles",
+                "on_arrival_count": 566
+            },
+            {
+                "source_port": "Hamburg",
+                "destination_port": "New York",
+                "on_arrival_count": 561
+            },
+            {
+                "source_port": "Los Angeles",
+                "destination_port": "Tokyo",
+                "on_arrival_count": 560
+            },
+            {
+                "source_port": "Mumbai",
+                "destination_port": "Dubai",
+                "on_arrival_count": 552
+            },
+            {
+                "source_port": "Shanghai",
+                "destination_port": "Singapore",
+                "on_arrival_count": 546
+            },
+            {
+                "source_port": "Hong Kong",
+                "destination_port": "Sydney",
+                "on_arrival_count": 540
+            },
+            {
+                "source_port": "Rotterdam",
+                "destination_port": "Mumbai",
+                "on_arrival_count": 521
+            }
+            ]
+    },
+    {   
+        "no": 6,
+        "question":"Who won the ipl",
+        "ground_truth_sql": "None",
+        "intent": [],
+        "ground_truth_result": [
+      {
+        "result": "The query is not based on database"
+      }
+    ]
+    },
+    {   
+        "no": 7,
+        "question": "Top 10 operator companies with most on-time shipments and their destination regions",
+        "ground_truth_sql": "SELECT sh.operator_company, p.region, COUNT(*) AS total_on_time_shipments FROM shipments s LEFT JOIN ships sh ON s.ship_id = sh.ship_id LEFT JOIN ports p ON s.destination_port_id = p.port_id WHERE s.shipment_status = 'On Time' GROUP BY sh.operator_company, p.region ORDER BY total_on_time_shipments DESC LIMIT 10",
+        "intent": ["shipments", "ships", "ports"],
+        "ground_truth_result": [
+            {
+                "operator_company": "HMM",
+                "region": "Asia",
+                "total_on_time_shipments": 247
+            },
+            {
+                "operator_company": "CMA CGM",
+                "region": "Asia",
+                "total_on_time_shipments": 242
+            },
+            {
+                "operator_company": "Evergreen Marine",
+                "region": "Asia",
+                "total_on_time_shipments": 235
+            },
+            {
+                "operator_company": "Maersk",
+                "region": "Asia",
+                "total_on_time_shipments": 233
+            },
+            {
+                "operator_company": "ONE",
+                "region": "Asia",
+                "total_on_time_shipments": 216
+            },
+            {
+                "operator_company": "MSC",
+                "region": "Asia",
+                "total_on_time_shipments": 216
+            },
+            {
+                "operator_company": "ZIM",
+                "region": "Asia",
+                "total_on_time_shipments": 205
+            },
+            {
+                "operator_company": "COSCO Shipping",
+                "region": "Asia",
+                "total_on_time_shipments": 203
+            },
+            {
+                "operator_company": "Yang Ming",
+                "region": "Asia",
+                "total_on_time_shipments": 200
+            },
+            {
+                "operator_company": "Hapag-Lloyd",
+                "region": "Asia",
+                "total_on_time_shipments": 196
+            }
+        ]
+    },
+    {
+        "no": 8,
+        "question": "Top 5 regions with most shipments",
+        "ground_truth_sql": "SELECT p.region, COUNT(*) AS total_shipments FROM shipments s LEFT JOIN ports p ON s.destination_port_id = p.port_id GROUP BY p.region ORDER BY total_shipments DESC LIMIT 5",
+        "intent": ["shipments", "ports"],
+        "ground_truth_result": [
+    {
+        "region": "Asia",
+        "total_shipments": 9855
+    },
+    {
+        "region": "Middle East",
+        "total_shipments": 5023
+    },
+    {
+        "region": "North America",
+        "total_shipments": 4978
+    },
+    {
+        "region": "Europe",
+        "total_shipments": 2611
+    },
+    {
+        "region": "Oceania",
+        "total_shipments": 2533
+    }
+]   
+    },
+    {   
+        "no": 9,
+        "question":"Who won the ipl",
+        "ground_truth_sql": "None",
+        "intent": [],
+        "ground_truth_result": [
+      {
+        "result": "The query is not based on database"
+      }
+    ]
+    },
+    {   
+        "no": 10,
+        "question":"Who won the ipl",
+        "ground_truth_sql": "None",
+        "intent": [],
+        "ground_truth_result": [
+      {
+        "result": "The query is not based on database"
+      }
+    ]
+    },
+    {   
+        "no": 11,
+        "question":"Who won the ipl",
+        "ground_truth_sql": "None",
+        "intent": [],
+        "ground_truth_result": [
+      {
+        "result": "The query is not based on database"
+      }
+    ]
+    }
+]
