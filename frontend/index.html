@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harbor SQL</title>
+    <link rel="stylesheet" href="./styles.css?v=7">
+</head>
+<body>
+    <main class="app-shell">
+        <aside class="harbor-panel" aria-label="Harbor status">
+            <div class="brand-lockup">
+                <span class="brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 64 64" role="img">
+                        <path d="M9 39h46l-7 12H18L9 39Z" fill="currentColor"/>
+                        <path d="M20 36V14l26 10v12H20Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+                        <path d="M25 21h16M25 29h16" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <div>
+                    <p class="eyebrow">Port Authority</p>
+                    <h1>Harbor SQL</h1>
+                </div>
+            </div>
+
+            <div class="sea-visual" aria-hidden="true">
+                <div class="sun"></div>
+                <div class="ship">
+                    <div class="ship-stack"></div>
+                    <div class="ship-cabin"></div>
+                    <div class="ship-hull"></div>
+                </div>
+                <div class="wave wave-one"></div>
+                <div class="wave wave-two"></div>
+            </div>
+
+            <section class="status-grid" aria-label="Available data">
+                <div>
+                    <span>Ships</span>
+                    <strong>1000</strong>
+                </div>
+                <div>
+                    <span>Ports</span>
+                    <strong>15</strong>
+                </div>
+                <div>
+                    <span>Access</span>
+                    <strong>Read</strong>
+                </div>
+            </section>
+        </aside>
+
+        <section class="workspace" aria-label="Query workspace">
+            <header class="topbar">
+                <div>
+                    <p class="eyebrow">Logistics Intelligence</p>
+                    <h2>Shipment Query Console</h2>
+                </div>
+                <div class="connection-pill" id="connectionStatus">Standing by</div>
+            </header>
+
+            <section class="query-panel">
+                <div class="mode-tabs" role="tablist" aria-label="Query mode">
+                    <button class="mode-tab active" type="button" data-mode="natural" role="tab" aria-selected="true">
+                        Natural Language
+                    </button>
+                    <button class="mode-tab" type="button" data-mode="sql" role="tab" aria-selected="false">
+                        SQL
+                    </button>
+                </div>
+
+                <form id="queryForm" class="query-form">
+                    <label for="queryInput" id="inputLabel">Voyage question</label>
+                    <textarea
+                        id="queryInput"
+                        name="queryInput"
+                        rows="6"
+                        maxlength="500"
+                        placeholder="Top delayed routes by average delay"
+                        required
+                    ></textarea>
+
+                    <div class="query-actions">
+                        <div class="sample-dock" aria-label="Sample queries">
+                            <button type="button" class="sample-query" data-query="Top delayed routes by average delay">Delayed routes</button>
+                            <button type="button" class="sample-query" data-query="Average delay by vessel type">Vessel delays</button>
+                            <button type="button" class="sample-query" data-query="Which destination ports receive the most shipments?">Port volume</button>
+                        </div>
+                        <button class="submit-button" type="submit">
+                            <span class="button-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M4 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                            Run
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <section class="results-panel" aria-live="polite">
+                <div class="results-header">
+                    <div>
+                        <p class="eyebrow">Manifest</p>
+                        <h2>Results</h2>
+                    </div>
+                    <div class="metric-strip">
+                        <span id="rowCount">0 rows</span>
+                        <span id="timeMetric">0.000s</span>
+                        <button id="downloadCsv" class="download-button" type="button" disabled>
+                            <span class="button-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 3v11M7 10l5 5 5-5M5 20h14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                            Download CSV
+                        </button>
+                    </div>
+                </div>
+
+                <div id="messageBanner" class="message-banner hidden"></div>
+
+                <div class="sql-berth">
+                    <div class="section-title">Generated SQL</div>
+                    <pre id="sqlOutput">Awaiting query</pre>
+                </div>
+
+                <div class="table-wrap">
+                    <table id="resultTable">
+                        <thead></thead>
+                        <tbody>
+                            <tr>
+                                <td class="empty-state">No cargo loaded yet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer">
+                    <div id="pageSummary" class="page-summary">Showing 0 rows</div>
+                    <nav id="paginationControls" class="pagination-controls" aria-label="Result pages"></nav>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script src="./config.js?v=1"></script>
+    <script src="./app.js?v=7"></script>
+</body>
+</html>
