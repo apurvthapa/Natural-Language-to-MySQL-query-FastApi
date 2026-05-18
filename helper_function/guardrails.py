@@ -1,114 +1,163 @@
+import re
 import time
+from typing import Any, Dict
 
-def pre_llm_guardrails(user_query):
-    start_time = time.time()
-    user_query = user_query.strip()
 
-    if not user_query:
-        return {
-            "allowed": False,
-            "message": "Empty query",
-            "execution_time": time.time() - start_time
-        }
+MAX_QUERY_LENGTH = 500
+EXECUTION_TIME_PRECISION = 4
 
-    # Very long query protection
-    if len(user_query) > 500:
-        return {
-            "allowed": False,
-            "message": "Query too long",
-            "execution_time": time.time() - start_time
-        }
 
-    lower_query = user_query.lower()
+BLOCKED_SQL_PATTERNS = re.compile(
+    r"(union\s+select|information_schema|xp_cmdshell|shutdown|benchmark\s*\()",
+    re.IGNORECASE
+)
 
-    # Dangerous operations
-    blocked_operations = [
-        "add",
-        "insert",
-        "create",
-        "update",
-        "edit",
-        "modify",
-        "remove",
-        "delete",
-        "drop",
-        "alter",
-        "replace",
-        "truncate",
-        "rename"
-    ]
+PROMPT_INJECTION_PATTERNS = re.compile(
+    r"(ignore\s+previous\s+instructions|"
+    r"ignore\s+all\s+instructions|"
+    r"system\s+prompt|"
+    r"reveal\s+prompt|"
+    r"jailbreak)",
+    re.IGNORECASE
+)
 
-    for word in blocked_operations:
+SQL_COMMENT_PATTERNS = re.compile(
+    r"(--|/\*|\*/)"
+)
 
-        if word in lower_query:
+DANGEROUS_SQL_OPERATIONS = re.compile(
+    r"\b(insert|update|delete|drop|alter|truncate|rename)\b",
+    re.IGNORECASE
+)
 
-            return {
-                "allowed": False,
-                "message": "Data modification requests are not allowed",
-                "execution_time": time.time() - start_time
-            }
 
-    # SQL injection keywords
-    blocked_sql_keywords = [
-        "union select",
-        "information_schema",
-        "xp_cmdshell",
-        "exec(",
-        "execute(",
-        "shutdown",
-        "benchmark("
-    ]
-
-    for word in blocked_sql_keywords:
-
-        if word in lower_query:
-
-            return {
-                "allowed": False,
-                "message": "Unsafe query detected",
-                "execution_time": time.time() - start_time
-            }
-
-    # SQL comments
-    if "--" in user_query or "/*" in user_query:
-
-        return {
-            "allowed": False,
-            "message": "SQL comments are not allowed",
-            "execution_time": time.time() - start_time
-        }
-
-    # Multiple statement attempts
-    if ";" in user_query:
-
-        return {
-            "allowed": False,
-            "message": "Multiple statements are not allowed",
-            "execution_time": time.time() - start_time
-        }
-
-    # Prompt injection attempts
-    prompt_injection_patterns = [
-        "ignore previous instructions",
-        "ignore all instructions",
-        "system prompt",
-        "reveal prompt",
-        "act as",
-        "jailbreak"
-    ]
-
-    for pattern in prompt_injection_patterns:
-
-        if pattern in lower_query:
-
-            return {
-                "allowed": False,
-                "message": "Prompt injection attempt detected",
-                "execution_time": time.time() - start_time
-            }
-
+def build_guardrail_response(
+    allowed: bool,
+    message: str,
+    start_time: float
+) -> Dict[str, Any]:
+    """
+    Build standardized guardrail response.
+    """
 
     return {
-        "allowed": True,
-        "message": "Query passed guardrails"
+        "allowed": allowed,
+        "message": message,
+        "execution_time": round(
+            time.perf_counter() - start_time,
+            EXECUTION_TIME_PRECISION
+        )
     }
+
+
+def pre_llm_guardrails(user_query: str) -> Dict[str, Any]:
+    """
+    Validate natural language query before sending it to the LLM.
+
+    Checks:
+    - Input type validation
+    - Empty query protection
+    - Query length restriction
+    - Dangerous SQL operation detection
+    - SQL injection pattern detection
+    - SQL comment detection
+    - Prompt injection detection
+    """
+
+    start_time = time.perf_counter()
+
+    try:
+
+        # Validate input type
+        if not isinstance(user_query, str):
+            return build_guardrail_response(
+                False,
+                "Invalid query format",
+                start_time
+            )
+
+        cleaned_query = user_query.strip()
+
+        # Empty query check
+        if not cleaned_query:
+            return build_guardrail_response(
+                False,
+                "Empty query is not allowed",
+                start_time
+            )
+
+        # Query length protection
+        if len(cleaned_query) > MAX_QUERY_LENGTH:
+            return build_guardrail_response(
+                False,
+                "Query exceeds maximum allowed length",
+                start_time
+            )
+
+        # Dangerous SQL operation detection
+        if DANGEROUS_SQL_OPERATIONS.search(cleaned_query):
+            return build_guardrail_response(
+                False,
+                "Dangerous database operations detected",
+                start_time
+            )
+
+        # SQL injection pattern detection
+        if BLOCKED_SQL_PATTERNS.search(cleaned_query):
+            return build_guardrail_response(
+                False,
+                "Potential SQL injection detected",
+                start_time
+            )
+
+        # SQL comment detection
+        if SQL_COMMENT_PATTERNS.search(cleaned_query):
+            return build_guardrail_response(
+                False,
+                "SQL comments are not allowed",
+                start_time
+            )
+
+        # Prompt injection detection
+        if PROMPT_INJECTION_PATTERNS.search(cleaned_query):
+            return build_guardrail_response(
+                False,
+                "Prompt injection attempt detected",
+                start_time
+            )
+
+        return build_guardrail_response(
+            True,
+            "Query passed guardrails",
+            start_time
+        )
+
+    except Exception as error:
+
+        return build_guardrail_response(
+            False,
+            f"Guardrail validation failed: {str(error)}",
+            start_time
+        )
+
+
+def validate_generated_sql(sql_query: str) -> bool:
+    """
+    Validate generated SQL before execution.
+    Only SELECT queries are allowed.
+    """
+
+    if not isinstance(sql_query, str):
+        return False
+
+    normalized_query = sql_query.strip().lower()
+
+    # Only SELECT queries allowed
+    if not normalized_query.startswith("select"):
+        return False
+
+    # Block dangerous SQL operations
+    if DANGEROUS_SQL_OPERATIONS.search(normalized_query):
+        return False
+
+    return True

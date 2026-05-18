@@ -159,8 +159,8 @@ Columns:
   - Evergreen Marine
   - Yang Ming
 
-- capacity_teu(INT)
-  Ship capacity in Kilo-Tonne
+- capacity_teu (INT)
+  Container ship capacity measured in TEU
 
 - origin_country
   Country name from where the ship originated
