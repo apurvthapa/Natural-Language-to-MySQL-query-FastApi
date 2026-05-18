@@ -49,6 +49,10 @@ Workflow:
 
 The project uses a relational shipping and logistics database built using 3 connected tables.
 
+## Database schema
+<img width="1528" height="728" alt="nlp-to-sql" src="https://github.com/user-attachments/assets/999c7f66-1c64-4296-ba61-848469f66b96" />
+
+
 ## Shipments Table
 
 Stores shipment movement and delivery activity.
