@@ -149,19 +149,7 @@ The API automatically performs joins between tables whenever required to answer 
 
 # API Workflow
 
-User Query
-↓
-Intent Detection
-↓
-Schema Selection
-↓
-SQL Generation
-↓
-SQL Validation
-↓
-Database Execution
-↓
-JSON Response
+User Query ---> Intent Detection ---> Schema Selection ---> SQL Generation ---> Database Execution ---> JSON Response
 
 ---
 
