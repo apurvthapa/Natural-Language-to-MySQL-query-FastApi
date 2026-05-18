@@ -1,170 +1,208 @@
-schema_dict ={'shipments': '''
-Table: shipments
+# Natural Language to SQL API
 
-Description:
-Contains shipment movement and delivery information.
+An AI-powered FastAPI application that converts natural language questions into SQL queries and retrieves insights from a shipping and logistics database.
 
-Columns:
+The system allows users to interact with structured databases using plain English instead of writing SQL manually.
 
-- shipment_id (INT, PRIMARY KEY)
-  Unique shipment identifier
+---
 
-- ship_id (INT, FOREIGN KEY -> ships.ship_id)
-  Unique ship identifier
+# Problem Statement
 
-- source_port_id (INT, FOREIGN KEY -> ports.port_id)
-  Source port of shipment
+Business users often need data insights but may not know SQL or database structures.
 
-- destination_port_id (INT, FOREIGN KEY -> ports.port_id)
-  Destination port of shipment
+This project solves that problem by allowing users to ask questions such as:
 
-- departure_time (DATETIME)
-  Timestamp when shipment departed
+* Top delayed routes
+* Average ship capacity by country
+* Most active destination ports
+* Shipment status by region
+* Top operators by shipment volume
 
-- estimated_arrival (DATETIME)
-  Expected shipment arrival timestamp
+The API automatically:
 
-- actual_arrival (DATETIME, NULLABLE)
-  Actual shipment arrival timestamp.
-  NULL means shipment has not arrived yet.
+* understands the user query
+* identifies relevant database tables
+* generates SQL queries
+* validates generated SQL
+* executes queries safely
+* returns structured JSON responses
 
-- cargo_type (VARCHAR)
-  Type of cargo carried by shipment
+---
 
-  Possible values:
-  - Electronics
-  - Coal
-  - Crude Oil
-  - Steel
-  - Textiles
-  - Automobiles
-  - Machinery
-  - Food Products
-  - Chemicals
-  - Consumer Goods
+# Solution Overview
 
-- shipment_status (VARCHAR)
-  Current shipment status
+The application uses an LLM-powered pipeline to transform natural language into executable SQL queries.
 
-  Possible values:
-  - Critical Delay
-  - Delayed
-  - On Time
-  - In Transit
+Workflow:
 
-- delay_hours (INT, NULLABLE)
-  Delay duration in hours.
-  Calculated using estimated_arrival and actual_arrival.
-  NULL means shipment has not arrived yet.
-'''
-,
-"ports": '''
-Table: ports
+1. User sends a natural language query
+2. Intent classifier identifies relevant tables
+3. Schema context is dynamically selected
+4. LLM generates SQL query
+5. SQL validation layer checks query safety
+6. Query executes using a read-only database connection
+7. Structured results are returned through the API
 
-Description:
-Contains ports information
+---
 
-Columns:
+# Database Design
 
-- port_id (INT, PRIMARY KEY)
-  Unique shipment identifier
-  INT value between from 1 to 15
+The project uses a relational shipping and logistics database built using 3 connected tables.
 
-- port_name(VARCHAR)
-  Contains port names
+## Shipments Table
 
-  Possible values:
-  - Shanghai
-  - Singapore
-  - Rotterdam
-  - Hamburg
-  - Dubai
-  - Mumbai
-  - Los Angeles
-  - Long Beach
-  - Busan
-  - Hong Kong
-  - Antwerp
-  - New York
-  - Tokyo
-  - Sydney
-  - Chennai
+Stores shipment movement and delivery activity.
 
-- country(VARCHAR)
-  contains the contries where the ports are
+Includes:
 
-  Possible values:
-  - China
-  - Singapore
-  - Netherlands
-  - Germany
-  - UAE
-  - India
-  - USA
-  - South Korea
-  - Belgium
-  - Japan
-  - Australia
+* shipment routes
+* cargo type
+* shipment status
+* delays
+* departure and arrival timestamps
 
-- region(VARCHAR)
-  Region where the country are
+Each shipment connects:
 
-  Possible values:
-  - Asia
-  - Europe
-  - Middle East
-  - North America
-  - Oceania
-'''
-,
-"ships" :'''
-Table: ships
+* one ship
+* one source port
+* one destination port
 
-Description:
-Contains ships details
+This acts as the central transactional table in the system.
 
-Columns:
+---
 
-- ship_id (INT, PRIMARY KEY)
-  Unique ships identifier
-  INT value between from 1 to 1000
+## Ports Table
 
-- ship_name (VARCHAR)
-  Name of respective ships
+Stores geographical and regional information about ports.
 
-- vessel_type (VARCHAR)
-  Vessel types
+Includes:
 
-  Possible values:
-  - Refrigerated Cargo
-  - Oil Tanker
-  - LNG Carrier
-  - Bulk Carrier
-  - Cargo
-  - Vehicle Carrier
-  - Container
+* port names
+* countries
+* regions
 
-- operator_company (VARCHAR)
-  Ship owned by operator
+Used for:
 
-  Possible values:
-  - ONE
-  - ZIM
-  - CMA CGM
-  - MSC
-  - Hapag-Lloyd
-  - COSCO Shipping
-  - HMM
-  - Maersk
-  - Evergreen Marine
-  - Yang Ming
+* route analysis
+* regional shipment insights
+* country-level aggregation
 
-- capacity_teu (INT)
-  Container ship capacity measured in TEU
+Example ports:
 
-- origin_country
-  Country name from where the ship originated
+* Shanghai
+* Singapore
+* Rotterdam
+* Mumbai
+* Los Angeles
 
+---
 
-'''
-             }
+## Ships Table
+
+Stores vessel and operator information.
+
+Includes:
+
+* ship names
+* vessel types
+* operator companies
+* ship capacity (TEU)
+* origin country
+
+Used for:
+
+* vessel analysis
+* operator performance
+* fleet capacity insights
+
+Example operators:
+
+* Maersk
+* MSC
+* ONE
+* COSCO Shipping
+
+---
+
+# Table Relationships
+
+The tables are connected using foreign keys:
+
+* shipments.ship_id → ships.ship_id
+* shipments.source_port_id → ports.port_id
+* shipments.destination_port_id → ports.port_id
+
+The API automatically performs joins between tables whenever required to answer complex business questions.
+
+---
+
+# Example Questions
+
+* Top delayed routes
+* Average delay by vessel type
+* Most active destination ports
+* Average ship capacity by origin country
+* Shipment count by region
+* Top operators by shipment volume
+
+---
+
+# API Workflow
+
+User Query
+↓
+Intent Detection
+↓
+Schema Selection
+↓
+SQL Generation
+↓
+SQL Validation
+↓
+Database Execution
+↓
+JSON Response
+
+---
+
+# Guardrails & Security
+
+The application includes multiple safety layers to protect the database.
+
+Security features:
+
+* Only SELECT queries are allowed
+* SQL injection patterns are blocked
+* Prompt injection attempts are filtered
+* Dangerous SQL operations are rejected
+* SQL comments and multiple statements are blocked
+* Database access is read-only
+
+---
+
+# Tech Stack
+
+* FastAPI
+* Python
+* MySQL
+* LangChain
+* OpenAI API
+* SQLAlchemy
+* Pandas
+
+---
+
+# Deployment
+
+Backend deployed using Render.
+
+---
+
+# Future Improvements
+
+* Query caching
+* Query optimization
+* Better intent classification
+* Visualization dashboard
+* SQL explanation support
+* Streaming responses
