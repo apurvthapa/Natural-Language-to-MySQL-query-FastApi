@@ -1,3 +1,6 @@
+import time
+from typing import Any, Dict
+
 from fastapi import FastAPI
 
 from pydantic_validation.validation import input
@@ -24,8 +27,17 @@ def home():
     }
 
 
+@app.get("/health")
+def health():
+
+    return {
+        "message": "Welcome"
+    }
+
+
 @app.post("/query_to_sql")  
 def query_to_sql(request: input):
+    start_time = time.time()
     
     guardrail_result = pre_llm_guardrails(request.user_query)
 
@@ -40,7 +52,14 @@ def query_to_sql(request: input):
             "execution_time": guardrail_result["execution_time"]
         }
 
-    result = execution(request.user_query)
+    try:
+        result = execution(request.user_query)
+    except Exception as error:
+        return build_error_response(
+            request.user_query,
+            f"Query pipeline failed: {str(error)}",
+            start_time,
+        )
 
     return result
 
@@ -49,5 +68,22 @@ def validate(request: input):
 
     result = validate_and_execute_sql(request.user_query)
     return result
+
+
+def build_error_response(
+    user_query: str,
+    message: str,
+    start_time: float
+) -> Dict[str, Any]:
+
+    return {
+        "query": user_query,
+        "intent": None,
+        "sql_query": None,
+        "result": [],
+        "success": False,
+        "error": message,
+        "execution_time": time.time() - start_time
+    }
 
 

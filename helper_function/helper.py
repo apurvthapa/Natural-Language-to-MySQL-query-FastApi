@@ -6,7 +6,43 @@ import re
 import time
 import pandas as pd
 import ast
+from datetime import date, datetime, time as datetime_time
+from decimal import Decimal
 from typing import Any, Dict, List
+
+
+def serialize_sql_value(value: Any) -> Any:
+    """
+    Convert database/pandas scalar values into JSON-safe values.
+    """
+
+    if value is None:
+        return None
+
+    if isinstance(value, (pd.Timestamp, datetime, date, datetime_time)):
+        return value.isoformat()
+
+    if isinstance(value, Decimal):
+        return float(value)
+
+    return value
+
+
+def dataframe_to_records(df: pd.DataFrame) -> List[Dict[str, Any]]:
+    """
+    Convert a dataframe to JSON-safe API records.
+    """
+
+    clean_df = df.astype(object).where(pd.notnull(df), None)
+    records = clean_df.to_dict(orient="records")
+
+    return [
+        {
+            column: serialize_sql_value(value)
+            for column, value in row.items()
+        }
+        for row in records
+    ]
 
 def intent_finder(user_query: str) -> List[str]:
     """
@@ -191,7 +227,7 @@ User Question:
 
             # CHANGE 3:
             # Convert dataframe for FastAPI JSON response
-            result_data = df.to_dict(orient="records")
+            result_data = dataframe_to_records(df)
 
             return {
                 'query': user_query,
@@ -321,7 +357,7 @@ def validate_and_execute_sql(sql_query: str) -> Dict[str, Any]:
         # Execute query
         df = pd.read_sql(sql_query, readonly_engine)
 
-        result_data = df.to_dict(orient="records")
+        result_data = dataframe_to_records(df)
 
         return {
             "success": True,
